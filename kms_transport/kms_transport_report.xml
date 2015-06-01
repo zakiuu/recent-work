@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <report
+            string="Pallet Tag"
+            id="action_report_pallet_tag"
+            model="stock.kms.transport.position"
+            report_type="qweb-pdf"
+            name="kms_transport.report_pallet_tag"
+            file="kms_transport.pallet_tag"
+        />
+        <report
+            string="Pallet Tag All in One"
+            id="action_report_pallet_tag_all_in_one"
+            model="stock.kms.transport"
+            report_type="qweb-pdf"
+            name="kms_transport.report_pallet_tag_all_in_one"
+            file="kms_transport.pallet_tag_all_in_one"
+        />
+        <report
+            string="Drop Sheet"
+            id="action_report_drop_sheet"
+            model="stock.kms.transport"
+            report_type="qweb-pdf"
+            name="kms_transport.report_trip_drop_sheet"
+            file="kms_transport.report_trip_drop_sheet"
+        />
+
+    </data>
+</openerp>

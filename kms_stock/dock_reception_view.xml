@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+
+
+        <record model="ir.ui.view" id="dock_reception_tree_view">
+            <field name="name">dock.reception.tree.view</field>
+            <field name="model">dock.reception</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                   <tree string="Reception List">
+                        <field name="name"/>
+                        <field name="reception_date"/>
+                        <field name="responsible_id"/>
+                        <field name="total_net_weight"/>
+                        <field name="number_pallets"/>
+                        <field name="state"/>
+                   </tree>
+            </field>
+        </record>
+
+
+         <record model="ir.ui.view" id="dock_reception_form_view">
+            <field name="name">dock.reception.form.view</field>
+            <field name="model">dock.reception</field>
+            <field name="arch" type="xml">
+                <form string="Reception Form">
+                    <header>
+                        <button name="action_done" type="object" string="Reception" states="confirmed"
+                                class="oe_highlight" />
+                        <button name="action_confirm" type="object" string="Confirm" states="draft"
+                                class="oe_highlight" />
+                        <field name="state" widget="statusbar" />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" class="oe_inline" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="responsible_id"/>
+                            <field name="reception_date"/>
+                        </group>
+                        <group>
+                            <field name="number_pallets" readonly="1"/>
+                            <field name="total_net_weight" readonly="1"/>
+                        </group>
+                        <separator string="Dock  Reception Lines"/>
+                        <field name="reception_line" >
+                            <tree >
+                                <field name="pallet_package"/>
+                                <field name ="total_units_number"/>
+                                <field name="gross_weight"/>
+                                <field name="net_weight" readonly="1" />
+                                <field name="package_id" readonly="1" />
+                            </tree>
+                            <form>
+                                <group>
+                                    <field name="pallet_package"/>
+                                    <field name="is_weighted"/>
+                                    <field name ="total_units_number" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="gross_weight"  attrs="{'invisible': [('is_weighted','=',False)]}"/>
+                                    <field name="net_weight" readonly="1"/>
+                                    <field name="package_id" readonly="1" />
+                                    <field name="picking_id" readonly="1" />
+                                </group>
+                                <separator string="Received Products"/>
+                                <field name="product_lines">
+                                    <tree editable="bottom">
+                                            <field name="dock_reception_line_id" invisible="1"/>
+                                            <field name="product_id"/>
+                                            <field name="package_unit"/>
+                                            <field name="number_of_unit"/>
+                                            <field name="location_id" />
+                                            <field name="destination_location_id"/>
+                                            <field name="product_uom_qty" readonly="1"/>
+                                            <field name="product_uom"/>
+                                            <field name="product_lot_id" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </form>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_dock_reception_filter" model="ir.ui.view">
+            <field name="name">dock.reception.filter</field>
+            <field name="model">dock.reception</field>
+            <field name="arch" type="xml">
+                <search string="Search Picking Waves">
+                    <field name="name" string="Reception"/>
+                    <field name="responsible_id"/>
+                    <group expand="0" string="Group By">
+                        <filter string="User" domain="[]" context="{'group_by':'user_id'}"/>
+                        <filter string="State" domain="[]" context="{'group_by':'state'}"/>
+                    </group>
+               </search>
+            </field>
+        </record>
+
+        <record id="action_dock_reception" model="ir.actions.act_window">
+            <field name="name">Dock Receptions</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">dock.reception</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_dock_reception_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a Reception Dok.
+              </p><p>
+                The Goal of the dock reception  view  is to allow user to receive and grade
+                mushroom from different farm houses to the dock and printing a slip to the hauler.
+              </p>
+            </field>
+        </record>
+
+        <menuitem action="action_dock_reception" id="menu_action_dock_reception"
+                  parent="stock.menu_stock_warehouse_mgmt" sequence="40"/>
+
+
+
+    </data>
+</openerp>

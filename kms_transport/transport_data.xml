@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="sequence_mrp_prod_type" model="ir.sequence.type">
+            <field name="name">Transport Trip</field>
+            <field name="code">kms.transport.trip</field>
+        </record>
+
+        <record id="sequence_mrp_prod" model="ir.sequence">
+            <field name="name">Trip Oder</field>
+            <field name="code">kms.transport.trip</field>
+            <field name="prefix">TRIP%(day)s%(month)s%(y)s-</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
+    </data>
+    <data noupdate="1">
+        <!-- Create a service product -->
+
+        <record id="kms_transport_product_delivery" model="product.product">
+            <field name="name">Local Delivery Service</field>
+            <field name="type">service</field>
+            <!--<field name="categ_id" ref="product.product_category_3"/>-->
+            <field name="standard_price">10.0</field>
+            <field name="list_price">10.0</field>
+        </record>
+
+        <!-- Carrier -->
+
+        <record id="kms_transport_local_delivery_carrier" model="delivery.carrier">
+            <field name="name">Local Delivery</field>
+            <field name="normal_price">0</field>
+            <field name="partner_id" ref="base.main_partner"/>
+            <field name="product_id" ref="kms_transport_product_delivery"/>
+        </record>
+
+        <!-- Carrier Grids -->
+
+        <record id="kms_transport_delivery_grid1" model="delivery.grid">
+            <field name="name">Local Delivery - Pricelist</field>
+            <field name="carrier_id" ref="kms_transport_local_delivery_carrier"/>
+        </record>
+
+        <!--  delivery charge of product if weight less than and equal 5kg-->
+        <record id="kms_transport_delivery_grid_line1" model="delivery.grid.line">
+            <field name="name">Default price</field>
+            <field name="grid_id" ref="kms_transport_delivery_grid1"/>
+            <field eval="0" name="max_value"/>
+            <field eval="0" name="list_price"/>
+            <field eval="0" name="standard_price"/>
+        </record>
+
+    </data>
+</openerp>

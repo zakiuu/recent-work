@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="report_pallet_tag">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <!--<t t-call="report.external_layout">-->
+                        <div class="page">
+                            <!--<div t-foreach="o.position_lines" t-as="position_line">-->
+                            <div>
+                                <div class="text-center">
+                                    <h2 t-field="o.picking_id.partner_id.name" style="width:100%; text-align:center; margin:0px;"></h2>
+                                    <h4 t-esc="o.trip_id.get_customer_address(o.picking_id)" style="width:100%; text-align:center; margin:0px;"></h4>
+                                </div>
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Seq</strong></th>
+                                            <th><strong>Item Description</strong></th>
+                                            <th><strong>UoM</strong></th>
+                                            <th><strong>Qty</strong></th>
+                                            <th><strong>Weight</strong></th>
+                                            <!--<th class="text-right"><strong>Lot Barcode</strong></th>-->
+                                            <!--<th><strong>Barcode</strong></th>-->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="o.position_lines" t-as="position_line">
+                                            <td><span t-field="position_line.sequence"/></td>
+                                            <td><span t-field="position_line.move_id.product_id"/></td>
+                                            <td class="text-center"> <span t-field="position_line.move_id.product_uom" groups="product.group_uom"/></td>
+                                            <td class="text-center"><span t-field="position_line.assigned_qty"/></td>
+                                            <td class="text-center"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="text-center">
+                                    <table class="table table-condensed" style="border-bottom: 3px solid black !important;"><thead><th> </th></thead></table>
+                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.package_id.name, 600, 100)" style="width:300px;height:50px"/>
+                                    <p t-field="o.package_id"></p>
+                                </div>
+                            </div>
+                        </div>
+                    <!--</t>-->
+                 </t>
+             </t>
+        </template>
+
+        <template id="report_trip_drop_sheet">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <!--<t t-call="report.external_layout">-->
+                        <div class="page">
+                            <div class="row" >
+                                <div class="col-xs-10">Koalin Mushroom Farms Inc.
+                                <p>649 West South Street | Kennett Square | PA | 19348</p>
+                                </div>
+                                <div class="col-xs-2"><strong><span t-field="o.trip_date"/></strong></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-3 pull-right">
+                                        <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.name, 600, 100)" style="width:300px;height:50px;"/>
+                                </div>
+                                <div class="col-xs-9">
+                                    <h3 class="text-center">Drop Sheet</h3>
+                                    <h4 class="text-center"><small  t-field="o.carrier_id.name"/></h4>
+                                </div>
+
+                            </div>
+                            <div class="row" style="margin-top: 10px">
+                                <div class="col-xs-8">
+                                    <div ><strong>Truck Number: </strong><span t-field="o.truck_number"/> </div>
+                                    <div ><strong>Trailer Number: </strong><span t-field="o.trailer_number.license_plate"/> </div>
+                                    <div ><strong>Temp Reqd:  </strong><span t-field="o.trailer_temp"/> </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div ><strong>Pallet Out: </strong><span t-field="o.loaded_positions"/> </div>
+                                    <div ><strong>Pallet In: </strong></div>
+                                    <div ><strong>Pallet Exchange: </strong><span t-field="o.is_pallet_exchange"/></div>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top: 20px">
+                                <table class="table table-condensed" style="margin-top: 20px;">
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Drop</strong></th>
+                                            <th><strong>Order #</strong></th>
+                                            <th><strong>Customer</strong></th>
+                                            <th><strong>Plt Out</strong></th>
+                                            <th><strong>Phone</strong></th>
+                                            <th><strong>Destination</strong></th>
+                                            <th><strong>Est. Del. Time</strong></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="get_orders(o)" t-as="line">
+                                            <td><span t-esc="line['drop']"/></td>
+                                            <td><span t-esc="line['order']"/></td>
+                                            <td><span t-esc="line['customer']"/></td>
+                                            <td><span t-esc="line['pallets']"/></td>
+                                            <td><span t-esc="line['phone']"/></td>
+                                            <td><span t-esc="line['destination']"/></td>
+                                            <td><span t-esc="line['delivery_time']"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <t t-foreach="get_delivery_orders(o)" t-as="order">
+                            <div class="page">
+                                <t t-call="kms_transport.trip_stock_picking"/>
+                            </div>
+                            <div class="page">
+                                <t t-call="kms_transport.trip_stock_picking"/>
+                            </div>
+                        </t>
+
+                    <!--</t>-->
+                 </t>
+             </t>
+        </template>
+        <template id="trip_stock_picking">
+            <div class="row"><div class="col-xs-4 pull-right">
+                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', order.name, 600, 100)" style="width:300px;height:50px;"/>
+                            </div></div>
+                             <div t-if="order.picking_type_id.code=='incoming' and order.partner_id">
+                                 <span><strong>Supplier Address:</strong></span>
+                             </div>
+                             <div t-if="order.picking_type_id.code=='internal' and order.partner_id">
+                                 <span><strong>Warehouse Address:</strong></span>
+                             </div>
+                             <div t-if="order.picking_type_id.code=='outgoing' and order.partner_id">
+                                 <span><strong>Customer Address:</strong></span>
+                             </div>
+                             <div t-if="order.partner_id" name="partner_header">
+                                 <div t-field="order.partner_id"
+                                    t-field-options='{"widget": "contact", "fields": ["address", "name", "phone", "fax"], "no_marker": true}'/>
+                                <p t-if="order.partner_id.vat">VAT: <span t-field="order.partner_id.vat"/></p>
+                             </div>
+
+                             <h2>
+                             <span t-field="order.picking_type_id"/>:
+                             <span t-field="order.name"/>
+                             </h2>
+                             <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th><strong>Order (Origin)</strong></th>
+                                    <th><strong>State</strong></th>
+                                    <th><strong>Commitment Date</strong></th>
+                                    <th name="td_sched_date_h"><strong>Scheduled Date</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span t-field="order.origin"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order.state"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order.date"/>
+                                    </td>
+                                    <td name="td_sched_date">
+                                        <span t-field="order.min_date"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            </table>
+                            <br/>
+                            <br/>
+                            <table class="table table-condensed" t-if="not order.pack_operation_ids">
+                              <thead>
+                                <tr>
+                                    <th><strong>Product</strong></th>
+                                    <th class="text-right"><strong>Quantity</strong></th>
+                                    <t t-if="order.picking_type_id.code != 'incoming'"><th><strong>Source</strong></th></t>
+                                    <th><strong>Barcode</strong></th>
+                                    <t t-if="order.picking_type_id.code != 'outgoing'"><th><strong>Destination</strong></th></t>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr t-foreach="order.move_lines" t-as="move">
+                                    <td><span t-field="move.product_id"/></td>
+                                    <td class="text-right"><span t-field="move.product_uom_qty"/> <span t-field="move.product_uom" groups="product.group_uom"/></td>
+                                    <t t-if="order.picking_type_id.code != 'incoming'"><td><span t-field="move.location_id"/></td></t>
+                                    <td>
+                                        <span t-if="move.product_id and move.product_id.ean13">
+                                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('EAN13', move.product_id.ean13, 600, 100)" style="width:300px;height:50px"/>
+                                        </span>
+                                    </td>
+                                    <t t-if="order.picking_type_id.code != 'outgoing'"><td><span t-field="move.location_dest_id"/></td></t>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <table class="table table-condensed" t-if="order.pack_operation_ids">
+                              <thead>
+                                <tr>
+                                    <th><strong>Product</strong></th>
+                                    <th class="text-right"><strong>Quantity</strong></th>
+                                    <t t-if="order.picking_type_id.code != 'incoming'"><th><strong>Source</strong></th></t>
+                                    <th><strong>Barcode</strong></th>
+                                    <t t-if="order.picking_type_id.code != 'outgoing'"><th><strong>Destination</strong></th></t>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr t-foreach="order.pack_operation_ids" t-as="pack_operation">
+                                    <td><span t-field="pack_operation.product_id"/>
+                                        <t t-if="not pack_operation.product_id and pack_operation.package_id"><span  t-field="pack_operation.package_id"/></t></td>
+                                    <td class="text-right"><span t-field="pack_operation.product_qty"/> <span t-field="pack_operation.product_uom_id" groups="product.group_uom"/></td>
+                                    <t t-if="order.picking_type_id.code != 'incoming'"><td><span t-field="pack_operation.location_id"/>
+                                        <span t-if="pack_operation.package_id">:</span>
+                                        <span t-field="pack_operation.package_id"/>
+                                        <span t-if="pack_operation.lot_id">:</span>
+                                        <span t-field="pack_operation.lot_id"/>
+                                        </td>
+                                    </t>
+                                    <td>
+                                        <span t-if="pack_operation.lot_id">
+                                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pack_operation.lot_id.name, 600, 100)" style="width:300px;height:50px"/>
+                                        </span>
+                                        <span t-if="pack_operation.product_id and not pack_operation.lot_id and pack_operation.product_id.ean13">
+                                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('EAN13', pack_operation.product_id.ean13, 600, 100)" style="width:300px;height:50px"/>
+                                        </span>
+                                        <span t-if="pack_operation.package_id and not pack_operation.product_id">
+                                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', pack_operation.package_id.name, 600, 100)" style="width:300px;height:50px"/>
+                                        </span>
+                                    </td>
+                                    <t t-if="order.picking_type_id.code != 'outgoing'"><td><span t-field="pack_operation.location_dest_id"/>
+                                        <span t-if="pack_operation.result_package_id">:</span>
+                                        <span t-field="pack_operation.result_package_id"/>
+                                    </td></t>
+                                </tr>
+                              </tbody>
+                            </table>
+        </template>
+
+        <template id="report_pallet_tag_all_in_one">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-foreach="o.position_ids" t-as="position">
+                        <div class="page">
+                            <div>
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Seq</strong></th>
+                                            <th><strong>Item Description</strong></th>
+                                            <th><strong>UoM</strong></th>
+                                            <th><strong>Qty</strong></th>
+                                            <th><strong>Weight</strong></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="position.position_lines" t-as="position_line">
+                                            <td><span t-field="position_line.sequence"/></td>
+                                            <td><span t-field="position_line.move_id.product_id"/></td>
+                                            <td class="text-center"> <span t-field="position_line.move_id.product_uom" groups="product.group_uom"/></td>
+                                            <td class="text-center"><span t-field="position_line.assigned_qty"/></td>
+                                            <td class="text-center"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="text-center">
+                                    <table class="table table-condensed" style="border-bottom: 3px solid black !important;"><thead><th> </th></thead></table>
+                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', position.package_id.name, 600, 100)" style="width:300px;height:50px"/>
+                                    <p t-field="position.package_id"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                 </t>
+             </t>
+        </template>
+
+    </data>
+</openerp>

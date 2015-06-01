@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+    <templates id="template" xml:space="preserve">
+
+        <!--Trip Orders Widgets-->
+        <t t-name="TripOrdersWidget">
+            <div class="order-container">
+                <div class="order-header">
+                    <div class="col-md-7">
+                        <table border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td class="order-h">Order #</td>
+                                <td class="order-h">Customer</td>
+                                <td class="order-h">Ship Address</td>
+                            </tr>
+                            <tr>
+                                <td id="orderName" class="order-d"/>
+                                <td id="orderCustomer" class="order-d"/>
+                                <td id="orderAddress" class="order-d"/>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-2">
+                        <div># of Plts</div>
+                        <div>
+                            <input id="pallet_number" style="padding:0px; height: 20px; float:left; width:60%" type="number" class="text-center form-control" min="1" max="30" placeholder=""/>
+                            <button style="margin-left:5px; padding:0px 1px 0px 1px; font-size:11px; float:left; width:30%" class="btn btn-xs btn-success js_add_pallets"><span class="glyphicon glyphicon-plus" ></span></button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-right">
+                        <button class='btn btn-default js_trip_prev' type="button"> &lt; Previous</button>
+                        <button class='btn btn-default js_trip_next' type="button" > Next &gt;</button>
+                    </div>
+                </div>
+                <div class="order-products">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <th></th>
+                            <th class="products-order-header" width="68%" style="text-align:left; padding-left:5px;">Item</th>
+                            <th class="products-order-header" align="center">Qty</th>
+                            <th class="products-order-header" align="center">UoM</th>
+                            <th class="products-order-header" align="center">Case Qty</th>
+                            <th class="products-order-header" align="center">Remain</th>
+                        </tr>
+                        <t t-foreach="widget.get_order_lines()" t-as="line">
+                            <tr class="js_drag_order_item">
+                                <td class="product-order-line js_check_box_line"><input type="checkbox" name="checkBoxLine"/></td>
+                                <td class="product-order-line" id="order_line_product"><t t-esc="line.product"/></td>
+                                <td class="product-order-line" align="center" id="order_line_qty"><t t-esc="line.quantity"/></td>
+                                <td class="product-order-line" align="center" id="order_line_uom"><t t-esc="line.unit"/></td>
+                                <td class="product-order-line" align="center" id="order_line_case_qty"><t t-esc="line.case_qty"/></td>
+                                <td class="product-order-line" align="center" id="order_line_remaining_qty"><t t-esc="line.remaining_qty"/></td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </div>
+        </t>
+
+        <!--Pallet Widget-->
+        <t t-name="PalletWidget">
+            <t t-if="widget.get_pallets_number() == 0">
+                <p> ADD Pallets here</p>
+            </t>
+            <t t-foreach="widget.getPallets()" t-as="pallet">
+                <t t-if="! pallet.delete">
+                    <div t-attf-id="pallet-{{pallet.name}}" class="pallet">
+                        <div class="pallet-header">
+                            <span id="pallet_position" class="pos">POS:<t t-esc="pallet.name"/></span>
+                            <span class="posdd">
+                                <select id="new_pallet_position" style="color:#000;">
+                                    <t t-foreach="pallet.positions" t-as="position">
+                                        <t t-if="position != pallet.name"><option t-attf-value="{{position}}"><t t-esc="position"/> </option></t>
+                                        <t t-if="position == pallet.name"><option t-attf-value="{{position}}" selected="1"><t t-esc="position"/></option></t>
+                                    </t>
+                                </select>
+                            </span>
+                            <span class="removepallet">
+                                <button class="btn btn-xs btn-danger js_delete_pallet" style="position: relative; top:-1px; font-size:10px; background-color:#000;">
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="pallet-items">
+                            <table class="table table-responsive table-condensed">
+                                <thead>
+                                   <tr>
+                                        <th>#</th>
+                                        <th>Item</th>
+                                        <th>Qty</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="js_pallet_sortable">
+                                    <t t-foreach="pallet.items" t-as="item">
+                                        <t t-if="! item.delete">
+                                           <tr class="js_pallet_item_drag">
+                                                <td id="palletLineSeq"><t t-esc="item.seq"/></td>
+                                                <td id ="palletLineProduct" class="pallet-item-desc"><t t-esc="item.product"/></td>
+                                                <td style="text-align:left;"><input id="PalletLineQty" style="width:50px" type="number" name="product_qty" t-attf-value="{{item.quantity}}"/></td>
+                                                <td><button class="btn btn-xs btn-danger js_delete_pallet_line" style="font-size:10px; position: relative; left:-3px">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button></td>
+                                            </tr>
+                                        </t>
+
+                                    </t>
+                                    <tr id="empty_row"><td style="color: gray;">Drag Item Here</td><td></td><td></td><td></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pallet-footer">
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td width="50%" align="left">
+                                        <button class="btn btn-sm btn-info" id="weight_ticket" style="font-weight:bold; padding:2px 5px 2px 5px; float:left"><span>WEIGHT</span></button>
+                                        <button class="btn btn-sm btn-primary" id="pallet_tag" style="font-weight:bold; padding:2px 5px 2px 5px; float:left"><span>PRINT</span></button>
+                                    </td>
+                                    <t t-if="pallet.bulk">
+                                        <td width="50%" align="right">
+                                            <button class="btn btn-sm btn-warning" style="font-weight:bold; padding:2px 5px 2px 5px; float:right"><span>BULK</span></button>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+
+        <!--Pallet Pad-->
+        <t t-name="PalletPad">
+            <div class="sendtopallet-control">
+                <div align="center" style="margin-top:10px;">
+                    <t t-foreach="widget.getPallets()" t-as="pallet">
+                        <div class="col-sm-2 col-sm-offset-1" style="padding:1px 0px 1px 0px;"><button class="btn btn-default js_clicked_pad" style="width:40px; height:30px;">
+                            <t t-esc="pallet.name"/>
+                        </button></div>
+                    </t>
+                </div>
+                <center>
+                    <button class="btn navbar-btn btn-primary add_multi_lines" style="width:90%; padding:0px 4px 0px 4px; height:32px; font-weight:bold; text-align:center">
+                        <span style="font-weight:bold;">
+                            <span class="glyphicon glyphicon-export" style="margin-right:2px; font-size:18px; float:left"></span>
+                            Send to Pallet
+                        </span>
+                    </button>
+                    <button class="btn navbar-btn btn-success js_save_pallets" style="width:90%; padding:0px 4px 0px 4px; height:32px; font-weight:bold; text-align:center">
+                        <span style="font-weight:bold;">
+                            <span class="glyphicon glyphicon-floppy-saved" style="margin-right:2px; font-size:18px; float:left"></span>
+                            Save Pallet Details
+                        </span>
+                    </button>
+                </center>
+            </div>
+        </t>
+
+        <!--Trip Main Widget-->
+        <t t-name="TripWidget">
+            <nav class="navbar-trans navbar-fixed-top" style="background-color:#fff;">
+                <nav class="navbar-trans navbar-inverse" role="navigation">
+                    <div class="nav-container" >
+                        <div class="nav-button-container">
+                            <button type="button" class="btn btn-danger js_trip_quit">Close</button>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Print Menu <span class="caret"></span></button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a id="print_order_tags">Order Pallet Tags</a></li>
+                                    <li><a id="print_all_in_once_tags">All Trip Pallet Tags</a></li>
+                                    <li class="divider"></li>
+                                    <li><a>Order Weight Tickets</a></li>
+                                    <li><a href="#">All Weight Tickets</a></li>
+                                    <li class="divider"></li>
+                                    <li><a id="drop_sheet">Drop Sheet</a></li>
+                                </ul>
+                            </div>
+                            <button type="button" class="btn btn-warning js_back_to_trip">Return to Trip</button>
+                        </div>
+                        <div class="nav-right-container">
+                            <span id="assigned_position" class="progress-left"></span>
+                            /
+                            <span id="total_position" class="progress-right"></span>
+                        </div>
+                    </div>
+                </nav>
+                <div id="test" class="trip-details-container">
+                    <table cellpadding="0" cellspacing="0" border="0" class="t-header">
+                        <tr>
+                            <td class="t-header-h" align="left">Trip ID</td>
+                            <td class="t-header-h" align="center">Destination</td>
+                            <td class="t-header-h" align="center">Driver</td>
+                            <td class="t-header-h" align="center">Truck Unit #</td>
+                            <td class="t-header-h" align="center">Trailer Unit #</td>
+                            <td class="t-header-h" align="center"># Orders</td>
+                            <td class="t-header-h" align="center">Total Positions</td>
+                            <td class="t-header-h" align="right">Trip Date</td>
+                        </tr>
+                        <tr>
+                            <td class="t-header-d" align="left" id="tripName"/>
+                            <td class="t-header-d" align="center" id="final_dest"/>
+                            <td class="t-header-d" align="center" id="driver"/>
+                            <td class="t-header-d" align="center" id="truck"/>
+                            <td class="t-header-d" align="center" id="trailer"/>
+                            <td class="t-header-d" align="center" id="orderNb"/>
+                            <td class="t-header-d" align="center" id="position"/>
+                            <td class="t-header-d" align="right" id="tripDate"/>
+                        </tr>
+                    </table>
+                </div>
+                <div class="control-container">
+                    <div id="tripOrders"></div>
+                    <div id="palletPad"></div>
+                </div>
+            </nav>
+
+            <div class="pallet_container">
+                <div id="tripPallets"/>
+            </div>
+
+
+        </t>
+
+    </templates>

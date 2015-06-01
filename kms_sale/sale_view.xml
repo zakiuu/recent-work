@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="kms_sale_form_view">
+            <field name="name">kms.sale.form</field>
+            <field name="model">sale.order</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@string='Order Lines']/field[@name='order_line']" position="before">
+                    <button name="action_quick_sale" states="draft" string="Quick Items" type="object" class="oe_highlight"/>
+                </xpath>
+                <xpath expr="//button[@string='View Invoice']" position="before">
+                    <button name="action_create_claim" states="done" string="Create Claim" type="object" class="oe_highlight"
+                            confirm="Are you sure you want to create an exception?"/>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</openerp>

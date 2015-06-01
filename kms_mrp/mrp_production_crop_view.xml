@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="mrp_production_crop_tree_view">
+            <field name="name">mrp.production.crop.tree</field>
+            <field name="model">mrp.production</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Production Crop Tree">
+                    <field name="state" invisible="1"/>
+                    <field name="name"/>
+                    <field name="fill_date"/>
+                    <field name="start_pick_date"/>
+                    <field name="stop_pick_date"/>
+                    <field name="clean_out_date"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="mrp_production_crop_form_view">
+            <field name="name">mrp.production.crop.form</field>
+            <field name="model">mrp.production</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Production Crop Form">
+                <header>
+                    <button name="button_confirm" states="draft" string="Confirm Production" class="oe_highlight"/>
+                    <button name="%(mrp.act_mrp_product_produce)d" states="ready,in_production" string="Produce" type="action" class="oe_highlight"/>
+                    <button name="action_assign" states="confirmed,picking_except" string="Check Availability" type="object" class="oe_highlight"/>
+                    <button name="force_production" states="confirmed" string="Force Reservation" type="object"/>
+                    <button name="button_produce" states="ready" string="Mark as Started"/>
+                    <button name="button_cancel" states="draft,ready,in_production" string="Cancel Production"/>
+                    <button name="action_cancel" type="object" states="confirmed" string="Cancel Production"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,in_production,done" statusbar_colors='{"confirmed":"blue"}'/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>CROP ID <field name="name" class="oe_inline"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="product_id" on_change="product_id_change(product_id, product_qty)" domain="[('bom_ids','!=',False),('bom_ids.type','!=','phantom')]" class="oe_inline" context='{"default_type": "product"}'/>
+                            <label for="product_qty"/>
+                            <div>
+                                <field name="product_qty" class="oe_inline" on_change="product_id_change(product_id, product_qty)"/>
+                                <field name="product_uom" groups="product.group_uom" class="oe_inline"/>
+                                <button type="action"
+                                    name="%(mrp.action_change_production_qty)d"
+                                    string="Update" states="confirmed" class="oe_edit_only oe_link"/>
+                            </div>
+                            <label for="product_uos_qty" groups="product.group_uos"/>
+                            <div groups="product.group_uos">
+                                <field name="product_uos_qty" class="oe_inline"/>
+                                <label string="-" attrs="{'invisible':[('product_uos','=',False)]}" class="oe_inline"/>
+                                <field name="product_uos" class="oe_inline"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="crop_grower"/>
+                            <field name="farm_id"/>
+                            <field name="house_id"/>
+                        </group>
+                        <group>
+                            <field name="spawn_rate" eval="100.0"/>
+                            <field name="supplement_rate"/>
+                            <field name="is_crop" context="{'default_is_crop': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Dates">
+                            <group>
+                                <group>
+                                    <field name="fill_date" />
+                                    <field name="spawn_date" />
+                                    <field name="start_pick_date" />
+                                </group>
+                                <group>
+                                    <field name="stop_pick_date" />
+                                    <field name="case_date" />
+                                    <field name="clean_out_date" />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Ingredients">
+                            <group>
+                                <group string="Products to Consume">
+                                    <field name="move_lines"  nolabel="1" options="{'reload_on_button': true}">
+                                        <tree colors="blue:state == 'draft';black:state in ('ready','assigned','in_production');gray:state in ('cancel','done');red:state in ('confirmed','waiting')" string="Products to Consume">
+                                            <field name="product_id"/>
+                                            <field name="product_uom_qty"  string="Quantity"/>
+                                            <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
+                                            <field name="state" invisible="1"/>
+                                            <button name="%(mrp.move_consume)d"
+                                                string="Consume Products" type="action"
+                                                icon="gtk-go-forward" context="{'consume': True}"
+                                                states="assigned"
+                                                 />
+                                            <button name="%(stock.move_scrap)d"
+                                                string="Scrap Products" type="action"
+                                                icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
+                                                states="draft,waiting,confirmed,assigned"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group string="Consumed Products">
+                                    <field name="move_lines2" nolabel="1" options="{'reload_on_button': true}">
+                                       <tree colors="red:scrapped==True;blue:state == 'draft';black:state in ('confirmed','ready','in_production');gray:state == 'cancel' " string="Consumed Products" editable="bottom">
+                                           <field name="product_id" readonly="1"/>
+                                           <field name="restrict_lot_id" context="{'product_id': product_id}" groups="stock.group_production_lot"/>
+                                           <field name="product_uom_qty" readonly="1"/>
+                                           <field name="product_uom" readonly="1" string="Unit of Measure" groups="product.group_uom"/>
+                                           <field name="state" invisible="1"/>
+                                           <field name="scrapped" invisible="1"/>
+                                       </tree>
+                                    </field>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Growing Parameters">
+                            <group>
+                                <group>
+                                    <field name="case_moisture"/>
+                                    <field name="peat_mixture"/>
+                                    <field name="bare_hot_spot"/>
+                                    <field name="gmold"/>
+                                    <field name="sciarids_seven_days"/>
+                                    <field name="sciarids_at_pick"/>
+                                </group>
+                                <group>
+                                    <field name="casing_ph"/>
+                                    <field name="bubble"/>
+                                    <field name="bubble_bags"/>
+                                    <field name="phorids_seven_days"/>
+                                    <field name="phorids_at_pick"/>
+                                </group>
+                                <field name="crop_comments" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Field Information">
+                            <group>
+                                <group>
+                                    <field name="first_break"/>
+                                    <field name="third_break"/>
+                                    <field name="bio_efficiency"/>
+                                    <field name="total_qty"/>
+                                    <field name="total_revenue"/>
+                                </group>
+                                <group>
+                                    <field name="second_break"/>
+                                    <field name="dry_weight"/>
+                                    <field name="total_days_picking"/>
+                                    <field name="avg_qty_sqft"/>
+                                    <field name="avg_revenue_sqft"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Harvesting Details">
+                            <group>
+                                <group string="Products to Produce">
+                                    <field name="move_created_ids" nolabel="1" options="{'reload_on_button': true}">
+                                        <tree string="Products to Finish">
+                                            <field name="product_id"/>
+                                            <field name="product_uom_qty"/>
+                                            <field name="product_uom"  string="Unit of Measure" groups="product.group_uom"/>
+                                            <field name="state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group string="Produced Products">
+                                    <field name="move_created_ids2" nolabel="1" options="{'reload_on_button': true}">
+                                        <tree colors="red:scrapped==True;blue:state == 'draft';black:state in('confirmed','ready','in_production');gray:state in('cancel','done') " string="Finished Products">
+                                            <field name="product_id" readonly="1"/>
+                                            <field name="product_uom_qty" readonly="1"/>
+                                            <field name="restrict_lot_id" groups="stock.group_production_lot"/>
+                                            <field name="product_uom" readonly="1" string="Unit of Measure" groups="product.group_uom"/>
+                                            <field name="location_dest_id"  readonly="1" string="Destination Loc." widget="selection" groups="stock.group_locations"/>
+                                            <field name="scrapped" invisible="1"/>
+                                            <field name="state" invisible="1"/>
+                                            <button name="%(stock.move_scrap)d"
+                                                string="Scrap Products" type="action" icon="terp-gtk-jump-to-ltr"
+                                                states="done,cancel"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_mrp_production_crop_filter" model="ir.ui.view">
+            <field name="name">mrp.production.crop.select</field>
+            <field name="model">mrp.production</field>
+            <field name="arch" type="xml">
+                <search string="Search Production">
+                    <field name="name" string="Production" filter_domain="['|',('name','ilike',self),('origin','ilike',self)]"/>
+               </search>
+            </field>
+        </record>
+
+        <record id="mrp_production_crop_action" model="ir.actions.act_window">
+            <field name="name">Crops</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.production</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="view_mrp_production_crop_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a manufacturing order.
+              </p><p>
+                A manufacturing order, based on a bill of materials, will
+                consume raw materials and produce finished products.
+              </p><p>
+                Manufacturing orders are usually proposed automatically based
+                on customer requirements or automated rules like the minimum
+                stock rule.
+              </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_mrp_production_crop_form_view">
+             <field name="view_mode">form</field>
+             <field name="view_id" ref="mrp_production_crop_form_view"/>
+             <field name="act_window_id" ref="mrp_production_crop_action"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_mrp_production_crop_tree_view">
+             <field name="view_mode">tree</field>
+             <field name="view_id" ref="mrp_production_crop_tree_view"/>
+             <field name="act_window_id" ref="mrp_production_crop_action"/>
+        </record>
+
+        <menuitem id="mrp_production_crop_menu" name="Crops" parent="mrp.menu_mrp_manufacturing"
+                  action="mrp_production_crop_action"/>
+
+    </data>
+</openerp>

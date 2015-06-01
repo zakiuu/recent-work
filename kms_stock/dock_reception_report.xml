@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <report
+            string="Dock Reception"
+            id="action_report_stock_picking"
+            model="dock.reception"
+            report_type="qweb-pdf"
+            name="kms_stock.report_dock_reception"
+            file="stock.report_dock_reception"
+        />
+
+    </data>
+</openerp>

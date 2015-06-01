@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="kms_transport_tree_view">
+            <field name="name">kms_transport.tree</field>
+            <field name="model">stock.kms.transport</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Trips">
+                    <field name="name"/>
+                    <field name="trip_date"/>
+                    <field name="delivery_method"/>
+                    <field name="carrier_id"/>
+                    <field name="truck_id"/>
+                    <field name="trailer_number"/>
+                    <field name="total_positions"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="kms_transport_position_form_view" model="ir.ui.view">
+            <field name="name">kms.transport.position.form.view</field>
+            <field name="model">stock.kms.transport.position</field>
+            <field name="arch" type="xml">
+                <form string="Pallet Details">
+                    <header>
+                        <button name="action_load" states="built" string="Load Pallet" type="object" class="oe_highlight" help="Load"/>
+                        <button name="action_built" states="draft" string="Confirm" type="object" help="Build Pallet" class="oe_highlight"/>
+                        <button name="action_unload" states="loaded" string="Unload Pallet" type="object"/>
+                        <button name="action_set_draft" states="built" string="Reset to draft" type="object"/>
+                        <button name="%(action_report_pallet_tag)d" string="Print Tag" type="action" class="oe_highlight" help="Print"/>
+                        <field name="state" widget="statusbar" />
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" readonly="1"/>
+                                <field name="pallet_package"/>
+                                <field name="max_qty"/>
+                            </group>
+                            <group>
+                                <field name="assigned_qty" readonly="1"/>
+                                <field name="remaining_qty" readonly="1"/>
+                                <field name="pallet_temperature" attrs="{'required': [('state', '=', 'built')]}"/>
+                                <field name="temperature_user_id" create="0" edit="0"/>
+                            </group>
+                            <field name="trip_id" invisible="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Assigned Orders">
+                                <field name="position_lines" context="{'transport':True}"
+                                       attrs="{'readonly': [('state', '=', 'loaded')]}">
+                                    <tree editable="bottom" >
+                                        <field name="product_bulk"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="move_id"
+                                               context="{'tree_view_ref':'kms_transport.stock_move_kms_transport_tree', 'transport': True}"
+                                               domain="[('picking_id.trip_id', '=', parent.trip_id)]"
+                                               />
+                                        <field name="product_id" readonly="1"/>
+                                        <field name="product_qty" readonly="1"/>
+                                        <field name="product_uom" readonly="1"/>
+                                        <field name="city" readonly="1"/>
+                                        <field name="assigned_qty"/>
+                                        <field name="remaining_qty" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Extra Info">
+                                <group>
+                                    <group>
+                                        <field name="built_user_id"/>
+                                        <field name="built_time"/>
+                                    </group>
+                                    <group>
+                                        <field name="load_user_id"/>
+                                        <field name="load_time"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <field name="is_bulk"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="kms_transport_position_tree_view" model="ir.ui.view">
+            <field name="name">kms.transport.position.tree.view</field>
+            <field name="model">stock.kms.transport.position</field>
+            <field name="arch" type="xml">
+                <tree string="Pallets Details">
+                    <field name="name"/>
+                    <field name="pallet_package"/>
+                    <field name="max_qty"/>
+                    <field name="assigned_qty"/>
+                    <field name="remaining_qty"/>
+                    <field name="state"/>
+                    <field name="built_user_id"/>
+                    <field name="built_time"/>
+                    <field name="load_user_id"/>
+                    <field name="load_time"/>
+                    <button name="action_built" states="draft" icon="gtk-apply" type="object" help="Build Pallet" class="oe_highlight"/>
+                    <button name="action_load" states="built" icon="gtk-go-forward" type="object" class="oe_highlight" help="Load"/>
+                    <button name="%(action_report_pallet_tag)d" icon="gtk-print" type="action" class="oe_highlight" help="Print"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="kms_transport_form_view" model="ir.ui.view">
+            <field name="name">kms.transport.form.view</field>
+            <field name="model">stock.kms.transport</field>
+            <field name="arch" type="xml">
+                <form string="Trip">
+                    <header>
+                        <button name="action_confirm" states="draft" string="Confirm" type="object" class="oe_highlight"/>
+                        <button name="action_reset" states="confirm, pending" string="Reset to Draft" type="object" />
+                        <button name="action_mark_ready" states="confirm" string="Mark as Ready" type="object" />
+                        <button name="action_mark_loaded" states="pending" string="Mark as Loaded" type="object" />
+                        <button name="open_barcode_interface" string="Pallet builder UI" type="object" />
+                        <field name="state" widget="statusbar" />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" class="oe_inline" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="trip_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="carrier_id" domain="[('is_transport', '=', 1)]" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('is_local','=',True)]}"/>
+
+                            </group>
+                            <group>
+                                <field name="trip_priority" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="driver_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </group>
+                        </group>
+                        <group string="Truck and Trailer Info">
+                            <field name="truck_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="trailer_number" attrs="{'invisible': [('is_local','=',True)], 'required':[('is_local', '=', False)], 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="trailer_temp" />
+                        </group>
+                        <notebook>
+                            <page string="General">
+                                <group>
+                                    <group>
+                                        <field name="is_local" invisible="1"/>
+                                        <field name="trip_type" attrs="{'invisible': [('is_local','=',True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="delivery_method" domain="[('partner_id', '=', carrier_id)]" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('is_local','=',True)]}"/>
+                                        <field name="starting_odometer" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="ending_odometer"/>
+                                        <field name="is_backhual" attrs="{'invisible': [('is_local','=',True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                    </group>
+                                    <group>
+                                        <field name="total_positions" attrs="{'invisible': [('is_local','=',True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="assigned_positions" attrs="{'invisible': [('is_local','=',True)]}"/>
+                                        <field name="unassigned_positions" attrs="{'invisible': [('is_local','=',True)]}"/>
+                                        <field name="loaded_positions" attrs="{'invisible': [('is_local','=',True)]}"/>
+                                        <field name="open_positions" attrs="{'invisible': [('is_local','=',True)]}"/>
+                                        <field name="is_pallet_exchange" attrs="{'invisible': [('is_local','=',True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Order(s) Info">
+                                <field name="stock_picking_ids" widget="many2many"
+                                       domain="[('location_dest_id', '=', 15), ('state', 'in', ['waiting','confirmed', 'partially_available', 'assigned']), ('trip_id', 'in', (None,False))]"
+                                       context="{'tree_view_ref':'kms_transport.stock_picking_kms_transport_tree'}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </page>
+                            <page string="Pallet Details">
+                                <field name="position_ids" attrs="{'readonly': [('state', '=', 'load')]}" />
+                            </page>
+                            <page string="Additional Info">
+                                <field name="comments" />
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="kms_transport_kanban" model="ir.ui.view">
+            <field name="name">kms.transport.kanban</field>
+            <field name="model">stock.kms.transport</field>
+            <field name="arch" type="xml">
+                <kanban string="Trips" class="oe_background_grey">
+                      <field name="name"/>
+                      <field name="full_percentage"/>
+                      <field name="load_percentage"/>
+                      <field name="assigned_positions"/>
+                      <field name="loaded_positions"/>
+                      <field name="trip_date"/>
+                      <templates>
+                          <t t-name="kanban-box">
+                              <div class="oe_kanban_card oe_kanban_kms_transport oe_kanban_global_click">
+                                 <div class="oe_dropdown_toggle oe_dropdown_kanban">
+                                    <span class="oe_e">í</span>
+                                    <ul class="oe_dropdown_menu">
+                                        <t t-if="widget.view.is_action_enabled('edit')"><li><a type="edit">Edit...</a></li></t>
+                                        <t t-if="widget.view.is_action_enabled('delete')"><li><a type="delete">Delete</a></li></t>
+                                        <t t-if="widget.view.is_action_enabled('edit')"><li><ul class="oe_kanban_colorpicker" data-field="color"/></li></t>
+                                    </ul>
+                                 </div>
+                                 <div class="oe_kanban_content">
+                                    <h3 class="text-center"><strong><field name="name"/> - <field name="delivery_method"/> </strong></h3>
+                                    <div class="oe_right">
+                                      <a name="open_barcode_interface" type="object">
+                                         <img src="/stock/static/src/img/scan.png"
+                                              alt="Click to launch the barcode interface"
+                                              class="oe_stock_scan_image" title="Click to launch the barcode interface"/>
+                                      </a>
+                                    </div>
+                                    <div class="oe_items_list oe_kanban_ellipsis">
+                                        <div>
+                                            <a name="%(action_report_drop_sheet)d" type="action">
+                                                <span>Print Trip Documents</span>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <a name="%(action_report_pallet_tag_all_in_one)d" type="action">
+                                                <span>Pallet Tags All in One</span>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <a name="action_sale_orders" type="object">
+                                                <span>Sale Orders</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="oe_items_list oe_kanban_ellipsis"></div>
+                                    <div class="oe_kms_stock_gauge">
+                                        <field name="assigned_positions" widget="gauge" style="width:150px; height: 110px;" options="{'levelcolors': ['#a9d70b', '#f9c802', '#ff0000']}">Assigned</field>
+                                        <field name="loaded_positions" widget="gauge" style="width:150px; height: 110px;">Loaded</field>
+                                        <div class="oe_gauge_labels">
+                                            <div class="oe_gauge_label_column">
+                                                <field name="assigned_positions"/> Assigned
+                                            </div>
+                                            <div class="oe_gauge_label_column">
+                                                <field name="loaded_positions"/> Loaded
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                              </div>
+                          </t>
+                      </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="stock_move_kms_transport_tree" model="ir.ui.view">
+            <field name="name">stock.move.kms.transport.tree</field>
+            <field name="model">stock.move</field>
+            <field name="arch" type="xml">
+                <tree string="Stock Move">
+                    <field name="partner_id"/>
+                    <field name="city"/>
+                    <field name="product_id"/>
+                    <field name="product_qty"/>
+                    <field name="product_uom"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="stock_picking_kms_transport_tree" model="ir.ui.view">
+            <field name="name">stock.picking.kms.transport.tree</field>
+            <field name="model">stock.picking</field>
+            <field name="arch" type="xml">
+                <tree string="Stock Picking">
+                    <field name="partner_id"/>
+                    <field name="date"/>
+                    <field name="origin"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+
+
+        <record id="view_kms_transport_filter" model="ir.ui.view">
+            <field name="name">ksm.transport.selection</field>
+            <field name="model">stock.kms.transport</field>
+            <field name="arch" type="xml">
+                <search string="Search Production">
+                    <field name="name"/>
+                    <field name="trip_date"/>
+                    <field name="driver_id"/>
+                    <field name="delivery_method"/>
+                    <field name="truck_id"/>
+                    <field name="trailer_number"/>
+                    <field name="carrier_id"/>
+                    <group string="Group By ...">
+                        <filter name="trip_date" string="Trip Month" context="{'group_by':'trip_date'}"/>
+                        <filter name="delivery_method" string="Destination" context="{'group_by':'delivery_method'}"/>
+                    </group>
+               </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_kms_transport_kanban_view">
+            <field name="name">Trip Management</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stock.kms.transport</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="kms_transport_kanban"/>
+            <field name="search_view_id" ref="view_kms_transport_filter"/>
+            <field name="domain">[('is_local','=',False)]</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_kms_transport_local_view">
+            <field name="name">Trip Management</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stock.kms.transport</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="kms_transport_kanban"/>
+            <field name="search_view_id" ref="view_kms_transport_filter"/>
+            <field name="context" eval="{'default_is_local': 1, 'default_carrier_id': ref('base.main_company'), 'default_delivery_method': ref('kms_transport.kms_transport_local_delivery_carrier')}"/>
+            <field name="domain">[('is_local','=',1)]</field>
+        </record>
+
+        <!-- This Menu Item Must have a parent -->
+        <menuitem id="kms_transport_menu" name="Transportation" parent="stock.menu_stock_root" sequence="20"/>
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="kms_transport_trip_menu" name="Trips" parent="kms_transport_menu"
+                  action="action_kms_transport_kanban_view" sequence="1"/>
+
+        <menuitem id="kms_transport_local_trip_menu" name="Local Trips" parent="kms_transport_menu"
+                  action="action_kms_transport_local_view" sequence="1"/>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="kms_transport_partner_form" model="ir.ui.view">
+            <field name="name">kms.transport.partner.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority" eval="5"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='sales_purchases']/group/group[2]/field[@name='supplier']" position="after">
+                    <field name="is_transport"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="kms_transport_fleet_vehicle_form" model="ir.ui.view">
+            <field name="name">kms.transport.fleet.vehicle.form</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='vin_sn']" position="after">
+                    <field name="asset_number"/>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</openerp>
